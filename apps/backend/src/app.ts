@@ -9,7 +9,10 @@ import { statsRouter } from './routes/stats.js'
 export function createApp() {
   const app = new Hono()
 
-  if (process.env.NODE_ENV !== 'test') {
+  if (
+    process.env.NODE_ENV !== 'test' &&
+    process.env.NODE_ENV !== 'production'
+  ) {
     app.use('*', logger())
   }
 

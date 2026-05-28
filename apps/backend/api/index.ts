@@ -1,10 +1,6 @@
 import 'dotenv/config'
-import { handle } from 'hono/vercel'
+import { getRequestListener } from '@hono/node-server'
 
 import { app } from '../src/app'
 
-export const config = {
-  runtime: 'nodejs',
-}
-
-export default handle(app)
+export default getRequestListener(app.fetch)
