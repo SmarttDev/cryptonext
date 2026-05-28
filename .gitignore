@@ -1,0 +1,9 @@
+*.docx
+node_modules
+.turbo
+dist
+.next
+*.db
+.env
+.env.local
+

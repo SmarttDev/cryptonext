@@ -1,0 +1,44 @@
+# Dev override: bind-mounts source for hot reload.
+# Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# or: make dev-build
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile.dev
+    environment:
+      DATABASE_URL: postgres://cryptonext:cryptonext@postgres:5432/cryptonext
+      PORT: '3001'
+      FRONTEND_URL: http://localhost:3000
+      SEED_ON_BOOT: ${SEED_ON_BOOT:-true}
+    volumes:
+      # Subdirectory bind-mounts. Source watched by tsx; package.json + lockfile
+      # come from the image so node_modules aren't masked.
+      - ./apps/backend/src:/repo/apps/backend/src
+      - ./apps/backend/drizzle:/repo/apps/backend/drizzle
+      - ./apps/backend/drizzle.config.ts:/repo/apps/backend/drizzle.config.ts
+      - ./apps/backend/tsconfig.json:/repo/apps/backend/tsconfig.json
+      - ./packages/shared/src:/repo/packages/shared/src
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile.dev
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3001
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      # Polling fallback for filesystems where inotify is unreliable
+      # (Docker Desktop on macOS / Windows, podman machine).
+      WATCHPACK_POLLING: 'true'
+      CHOKIDAR_USEPOLLING: 'true'
+    volumes:
+      - ./apps/frontend/src:/repo/apps/frontend/src
+      - ./apps/frontend/next.config.ts:/repo/apps/frontend/next.config.ts
+      - ./apps/frontend/tsconfig.json:/repo/apps/frontend/tsconfig.json
+      - ./apps/frontend/next-env.d.ts:/repo/apps/frontend/next-env.d.ts
+      - ./apps/frontend/postcss.config.mjs:/repo/apps/frontend/postcss.config.mjs
+      - ./packages/ui/src:/repo/packages/ui/src
+      - ./packages/shared/src:/repo/packages/shared/src
